@@ -1,0 +1,61 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: lalit
+      MONGO_INITDB_ROOT_PASSWORD: 12345
+    ports:
+      - "27017:27017"
+    networks:
+      - EXAM
+    volumes:
+      - type: volume
+        source: MONGO_DATA
+        target: /data/db
+      - type: volume
+        source: MONGO_CONFIG
+        target: /data/configdb
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: lalit
+      ME_CONFIG_MONGODB_ADMINPASSWORD: 12345
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_PORT: "27017"
+    ports:
+      - "8081:8081"
+    networks:
+      - EXAM
+    depends_on:
+      - mongo
+
+  # backend:
+  #   image: node
+  #   container_name: backend
+  #   ports:
+  #     - "5000:5000"
+  #   networks:
+  #     - EXAM
+  #   depends_on:
+  #     - mongo
+  #   volumes:
+  #     - type: bind
+  #       source: ./
+  #       target: /usr/app
+  #     - /usr/app/node_modules
+  #   command: bash
+  #   depends_on:
+  #     - mongo
+
+networks:
+  EXAM:
+    name: EXAM
+
+volumes:
+  MONGO_DATA:
+    name: MONGO_DATA
+  MONGO_CONFIG:
+    name: MONGO_CONFIG
