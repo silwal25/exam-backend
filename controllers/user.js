@@ -1,5 +1,7 @@
 const User = require("../models/userModel")
 const jwt = require("jsonwebtoken")
+const dotenv = require("dotenv")
+dotenv.config()
 
 exports.register = (req, res) => {
   let user = new User(req.body)
@@ -11,12 +13,11 @@ exports.register = (req, res) => {
     .then((data) => {
       // User is not already registered
       // Create a new user and add it to the database
-      res.send("Successfully registered")
+      res.send({ message: "Successfully registered", status: 200 })
     })
     .catch((err) => {
       // User is already registered
-      console.log(err)
-      res.send(err)
+      res.send({ message: "User is already registered", status: 400, err })
     })
 }
 
@@ -27,16 +28,16 @@ exports.login = (req, res, next) => {
   // If not then return an error
   user
     .login()
-    .then((id) => {
+    .then((id, name) => {
       // User is already registered
       // Create a new jwt token and login
-      const token = jwt.sign({ _id: id }, "123456")
-      res.send({ auth_token: token })
+      const token = jwt.sign({ id: id }, process.env.JWT_SECRET)
+      res.send({ auth_token: token, status: 200, name: name, message: "successfully logged in" })
     })
     .catch((err) => {
       // User does not exist or
       // Invalid credentials
-      res.send(err)
+      res.send({ message: err })
     })
 }
 
@@ -44,7 +45,7 @@ exports.verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"]
   const token = authHeader && authHeader.split(" ")[1]
   if (token) {
-    jwt.verify(token, "123456", (err, user) => {
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
       if (err) {
         res.sendStatus(401)
       } else {
@@ -52,6 +53,6 @@ exports.verifyToken = (req, res, next) => {
       }
     })
   } else {
-    return res.sendStatus(401)
+    return res.send(err)
   }
 }
